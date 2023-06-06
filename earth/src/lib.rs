@@ -107,12 +107,12 @@ mod error;
 /// use earth::prelude::*;
 /// use bevy::prelude::*;
 ///
-/// 
 /// App::new()
 ///     .add_plugins(DefaultPlugins)
 ///     .add_plugins(EarthPlugins)
-/// //  ...other setup 
-///```
+/// //  ...other setup
+/// #   ;
+/// ```
 pub struct EarthPlugins;
 
 impl PluginGroup for EarthPlugins {
