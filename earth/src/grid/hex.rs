@@ -432,19 +432,19 @@ mod test {
         const EPSILON: f32 = 0.0001;
         use super::super::*;
         
-        fn grids() -> [Grid; 1] {
+        fn grids() -> [Grid; 3] {
             [
-                /*Grid {
+                Grid {
                     major_radius: 30.0,
                     origin: Vec3::new(1.0, 2.0, 3.0),
                     tiles: HashMap::new(),
-                },*/
+                },
                 Grid::default(),
-                /*Grid {
+                Grid {
                     major_radius: 150.0,
                     origin: Vec3::new(200.0, 400.0, 8.0),
                     tiles: HashMap::new(),
-                },*/
+                },
             ]
         }
         
