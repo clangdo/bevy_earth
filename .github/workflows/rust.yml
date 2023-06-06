@@ -1,0 +1,33 @@
+# Adapted from default rust CI based on
+# https://github.com/bevyengine/bevy/blob/v0.9.1/.github/workflows/ci.yml
+name: Main CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Audit
+      run: cargo audit
+    - name: Install dependencies
+      run: sudo apt update && sudo apt install --no-install-recommends libasound2-dev libudev-dev libwayland-dev libxkbcommon-dev
+    - name: Lint
+      run: cargo clippy --all-targets --all-features -- -D warnings
+    - name: Build
+      run: cargo build --verbose
+
+# Testing (particularly doc testing of library examples) doesn't work without a cpu vulkan implementation.
+# See: https://github.com/bevyengine/bevy/issues/1730#issuecomment-810321110
+#    - name: Test
+#      env:
+#        CI_TESTING_CONFIG: .github/test_config.ron
+#      run: xvfb-run --server-args="-screen 0 1920x1080x24" cargo test --verbose

@@ -1,0 +1,7 @@
+[book]
+authors = ["Caelan Langdon",  "Chase Parker"]
+language = "en"
+multilingual = false
+src = "src"
+title = "Earth Environments Book"
+[output.html]

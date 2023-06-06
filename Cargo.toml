@@ -1,0 +1,13 @@
+[workspace]
+members = ["earth"]
+exclude = ["workspaces", "assets"]
+# https://bevyengine.org/learn/book/getting-started/setup/#cargo-workspaces
+resolver = "2"
+
+# The following profile modifications are copied from
+# https://bevyengine.org/learn/book/getting-started/setup/
+[profile.dev]
+opt-level = 1
+
+[profile.dev.package."*"]
+opt-level = 3
