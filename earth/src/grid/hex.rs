@@ -360,13 +360,15 @@ impl GridVec {
     pub fn hex_round(vec: Vec2) -> Self {
         use bevy::math::Vec2Swizzles;
         let fractional = vec.fract();
+        // Just trust me
+        let fractional = fractional + fractional.yx() * SIN_FRAC_PI_6;
 
         let half = Vec2::splat(0.5);
-        let two_thirds = Vec2::splat(2.0 / 3.0);
-
+        let one = Vec2::splat(1.0);
+        
         let axial = if fractional.cmplt(half).all() {
             vec.floor()
-        } else if fractional.cmpgt(two_thirds).all() {
+        } else if fractional.cmpgt(one).all() {
             vec.ceil()
         } else if fractional.x < fractional.y {
             Vec2::new(vec.x.floor(), vec.y.ceil())
@@ -421,5 +423,167 @@ impl std::ops::Mul<GridVec> for i32 {
     type Output = GridVec;
     fn mul(self, rhs: GridVec) -> GridVec {
         GridVec::try_from(self * rhs.vec).unwrap()
+    }
+}
+
+#[cfg(test)]
+mod test {
+    mod world_to_grid {
+        const EPSILON: f32 = 0.0001;
+        use super::super::*;
+        
+        fn grids() -> [Grid; 1] {
+            [
+                /*Grid {
+                    major_radius: 30.0,
+                    origin: Vec3::new(1.0, 2.0, 3.0),
+                    tiles: HashMap::new(),
+                },*/
+                Grid::default(),
+                /*Grid {
+                    major_radius: 150.0,
+                    origin: Vec3::new(200.0, 400.0, 8.0),
+                    tiles: HashMap::new(),
+                },*/
+            ]
+        }
+        
+        #[test]
+        fn origin_north_border() {
+            for grid in grids() {
+                let inside_r = COS_FRAC_PI_6 * grid.major_radius - EPSILON;
+                let outside_r = COS_FRAC_PI_6 * grid.major_radius + EPSILON;
+
+                // Test inside
+                let actual = grid.to_grid_coordinate(grid.origin.truncate() + Vec2::Y * inside_r);
+                let expected = GridVec::ZERO;
+                assert_eq!(actual, expected);
+
+                // Test outside
+                let actual = grid.to_grid_coordinate(grid.origin.truncate() + Vec2::Y * outside_r);
+                let expected = GridVec::NORTH;
+                assert_eq!(actual, expected);
+            }
+        }
+
+                #[test]
+        fn origin_south_border() {
+            for grid in grids() {
+                let inside_r = COS_FRAC_PI_6 * grid.major_radius - EPSILON;
+                let outside_r = COS_FRAC_PI_6 * grid.major_radius + EPSILON;
+
+                // Test inside
+                let actual = grid.to_grid_coordinate(grid.origin.truncate() - Vec2::Y * inside_r);
+                let expected = GridVec::ZERO;
+                assert_eq!(actual, expected);
+
+                // Test outside
+                let actual = grid.to_grid_coordinate(grid.origin.truncate() - Vec2::Y * outside_r);
+                let expected = GridVec::SOUTH;
+                assert_eq!(actual, expected);
+            }
+        }
+
+        #[test]
+        fn origin_east_corner() {
+            for grid in grids() {
+                let inside_r = grid.major_radius - EPSILON;
+                let outside_r = grid.major_radius + EPSILON;
+
+                // Test inside
+                let actual = grid.to_grid_coordinate(grid.origin.truncate() + Vec2::X * inside_r);
+                let expected = GridVec::ZERO;
+                assert_eq!(actual, expected);
+
+                // Test outside
+                let actual = grid.to_grid_coordinate(grid.origin.truncate() + Vec2::X * outside_r);
+                let expected = [GridVec::NORTHEAST, GridVec::SOUTHEAST];
+                assert!(expected.contains(&actual));
+            }
+        }
+
+        #[test]
+        fn origin_west_corner() {
+            for grid in grids() {
+                let inside_r = grid.major_radius - EPSILON;
+                let outside_r = grid.major_radius + EPSILON;
+
+                // Test inside
+                let actual = grid.to_grid_coordinate(grid.origin.truncate() - Vec2::X * inside_r);
+                let expected = GridVec::ZERO;
+                assert_eq!(actual, expected);
+
+                // Test outside
+                let actual = grid.to_grid_coordinate(grid.origin.truncate() - Vec2::X * outside_r);
+                let expected = [GridVec::NORTHWEST, GridVec::SOUTHWEST];
+                assert!(expected.contains(&actual));
+            }
+        }
+
+        #[test]
+        fn origin_northeast_corner() {
+            for grid in grids() {
+
+                let vector = Vec2::new(grid.major_radius / 2.0, grid.major_radius * COS_FRAC_PI_6);
+                let inside_vec = vector * (1.0 - EPSILON);
+                let outside_vec = vector * (1.0 + EPSILON);
+
+                // Test inside
+                let actual = grid.to_grid_coordinate(grid.origin.truncate() + inside_vec);
+                let expected = GridVec::ZERO;
+                assert_eq!(actual, expected);
+
+                // Test outside
+                let actual = grid.to_grid_coordinate(grid.origin.truncate() + outside_vec);
+                let expected = [GridVec::NORTH, GridVec::NORTHEAST];
+                assert!(expected.contains(&actual));
+            }
+        }
+
+        #[test]
+        fn north_northeast_corner() {
+            for grid in grids() {
+                let vector = Vec2::new(
+                    grid.major_radius / 2.0,
+                    grid.major_radius * COS_FRAC_PI_6 * 3.0,
+                );
+
+                let inside_vec = vector * (1.0 - EPSILON);
+                let outside_vec = vector * (1.0 + EPSILON);
+
+                // Test inside
+                let actual = grid.to_grid_coordinate(grid.origin.truncate() + inside_vec);
+                let expected = GridVec::NORTH;
+                assert_eq!(actual, expected);
+
+                // Test outside
+                let actual = grid.to_grid_coordinate(grid.origin.truncate() + outside_vec);
+                let expected = [GridVec::NORTH * 2, GridVec::NORTH + GridVec::NORTHEAST];
+                assert!(expected.contains(&actual));
+            }
+        }
+
+        #[test]
+        fn two_southwest_northwest_corner() {
+            for grid in grids() {
+                let vector = Vec2::new(
+                    -grid.major_radius * 2.5,
+                    -grid.major_radius * COS_FRAC_PI_6,
+                );
+
+                let inside_vec = vector - Vec2::new(0.0, EPSILON);
+                let outside_vec = vector + Vec2::new(0.0, EPSILON);
+
+                // Test inside
+                let actual = grid.to_grid_coordinate(grid.origin.truncate() + inside_vec);
+                let expected = GridVec::SOUTHWEST * 2;
+                assert_eq!(actual, expected);
+
+                // Test outside
+                let actual = grid.to_grid_coordinate(grid.origin.truncate() + outside_vec);
+                let expected = GridVec::SOUTHWEST * 2 + GridVec::NORTH;
+                assert_eq!(actual, expected);
+            }
+        }
     }
 }
