@@ -431,7 +431,7 @@ mod test {
     mod world_to_grid {
         const EPSILON: f32 = 0.0001;
         use super::super::*;
-        
+
         fn grids() -> [Grid; 3] {
             [
                 Grid {

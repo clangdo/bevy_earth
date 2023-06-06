@@ -96,11 +96,11 @@ that evolved into the current forest environment. Thank you all.
 
 ## Licensing
 The code in this repository is licensed under the MIT license (see
-`LICENSE.txt`) except where otherwise specified.
+`LICENSE`) except where otherwise specified.
 
 ### Third Party Licensing
 Not all resources in this repository are licensed as specified in
-`LICENSE.txt`. Some assets (such as fonts) in this repository were
+`LICENSE`. Some assets (such as fonts) in this repository were
 created by third parties and are redistributed under their respective
 licenses. Each such resource is packaged in a directory with the
 applicable license for that resource. 
